@@ -1,5 +1,5 @@
 node_modules/
 
 app/assets/**/*.map
-app/assets/js/*.bundle.js
+app/assets/js/*.js
 app/assets/css/*.css
