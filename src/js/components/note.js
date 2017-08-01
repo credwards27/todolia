@@ -79,7 +79,7 @@ class Note {
         }
         
         var wrapper = $("<div>"),
-            elem, curr, i, l;
+            elem, label, curr, i, l;
         
         for (i=0, l=data.length; i<l; ++i) {
             curr = data[i];
@@ -92,14 +92,18 @@ class Note {
             }
             else if (curr.hasOwnProperty("checked")) {
                 // Checkbox
-                elem = $("<label>").append(
+                elem = $("<div>").append(
                     $("<input>").attr("type", "checkbox")
                         .prop("checked", !!curr.checked)
                 );
                 
+                label = $("<label>");
+                
                 if (curr.text && typeof curr.text === "string") {
-                    elem.append(curr.text);
+                    label.append(curr.text);
                 }
+                
+                elem.append(label);
             }
             else {
                 continue;
@@ -123,7 +127,7 @@ class Note {
             dom = Note.getDom(this._data),
             prev;
         
-        wrapper.append(dom);
+        wrapper.append(dom).prop("contentEditable", true);
         
         if (existing.length) {
             prev = existing.prev();
