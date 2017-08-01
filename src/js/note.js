@@ -10,6 +10,8 @@ const Note = require("~/components/note"),
 
 /* Document ready initializer.
 */
-function init() {}
+function init() {
+    var note = new Note("dev");
+}
 
 $(init);

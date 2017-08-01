@@ -3,6 +3,8 @@
     Note clase object.
 */
 
+const $ = window.jQuery;
+
 /* Note object.
 */
 class Note {
@@ -14,9 +16,16 @@ class Note {
     // PROPERTIES
     //
     
+    // Unique note ID name.
+    _id = null;
+    
     /* Constructor for Note.
+        
+        id - Note ID name.
     */
-    constructor() {}
+    constructor(id) {
+        this._id = id;
+    }
     
     /* Destructor for Note.
     */
