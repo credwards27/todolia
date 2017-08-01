@@ -66,9 +66,74 @@ class Note {
     // STATIC METHODS
     //
     
+    /* Generates content DOM for a note.
+        
+        data - Array of content nodes.
+        
+        Returns a jQuery collection of elements containing the provided data.
+        The returned object will be empty if the provided data is invalid.
+    */
+    static getDom(data) {
+        if (!(data instanceof Array)) {
+            return $();
+        }
+        
+        var wrapper = $("<div>"),
+            elem, curr, i, l;
+        
+        for (i=0, l=data.length; i<l; ++i) {
+            curr = data[i];
+            
+            if (!curr) { continue; }
+            
+            if (typeof curr === "string") {
+                // Raw string, add a paragraph
+                elem = $("<p>").html(curr);
+            }
+            else if (curr.hasOwnProperty("checked")) {
+                // Checkbox
+                elem = $("<label>").append(
+                    $("<input>").attr("type", "checkbox")
+                        .prop("checked", !!curr.checked)
+                );
+                
+                if (curr.text && typeof curr.text === "string") {
+                    elem.append(curr.text);
+                }
+            }
+            else {
+                continue;
+            }
+            
+            wrapper.append(elem);
+        }
+        
+        return wrapper.contents();
+    }
+    
     //
     // METHODS
     //
+    
+    /* Renders the note.
+    */
+    render() {
+        var existing = $("main"),
+            wrapper = $("<main role='main' data-id=" + this._id + ">"),
+            dom = Note.getDom(this._data),
+            prev;
+        
+        wrapper.append(dom);
+        
+        if (existing.length) {
+            prev = existing.prev();
+            existing.remove();
+            wrapper.insertAfter(prev);
+        }
+        else {
+            $("body").prepend(wrapper);
+        }
+    }
 }
 
 module.exports = Note;

@@ -12,6 +12,7 @@ const Note = require("~/components/note"),
 */
 function init() {
     var note = new Note("dev");
+    note.render();
 }
 
 $(init);
