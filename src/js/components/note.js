@@ -119,6 +119,15 @@ class Note {
     // METHODS
     //
     
+    /* Enables or disables edit mode.
+        
+        mode - True to enable edit mode, false otherwise. Defaults to true.
+    */
+    enableEditMode(mode) {
+        mode = mode || undefined === mode;
+        $("main[data-id='" + this._id + "']").prop("contentEditable", mode);
+    }
+    
     /* Renders the note.
     */
     render() {
@@ -127,7 +136,7 @@ class Note {
             dom = Note.getDom(this._data),
             prev;
         
-        wrapper.append(dom).prop("contentEditable", true);
+        wrapper.append(dom);
         
         if (existing.length) {
             prev = existing.prev();
@@ -137,6 +146,8 @@ class Note {
         else {
             $("body").prepend(wrapper);
         }
+        
+        this.enableEditMode(true);
     }
 }
 
