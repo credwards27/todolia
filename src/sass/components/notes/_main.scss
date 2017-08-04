@@ -2,11 +2,18 @@ main {
     
     padding: 20px;
     
-    & > *:first-child {
-        margin-top: 0;
+    & > * {
+        margin: 1em 0;
+        
+        &:first-child {
+            margin-top: 0;
+        }
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
-    & > *:last-child {
-        margin-bottom: 0;
+    & > div {
+        margin: 0.5em 0;
     }
     
     &:focus {
@@ -15,10 +22,42 @@ main {
     
     label {
         cursor: text;
+        vertical-align: middle;
     }
-    input[type="checkbox"]:checked + label {
-        color: $light-gray;
-        text-decoration: line-through;
+    input[type="checkbox"] {
+        -webkit-appearance: none;
+        appearance: none;
+        
+        width: 2.5em;
+        height: 2.5em;
+        margin: 0 0.5em 0 0;
+        border: 1px solid $light-gray;
+        cursor: default;
+        
+        border-radius: 3em;
+        
+        vertical-align: middle;
+        
+        &:checked {
+            background-image: url('/assets/img/check.svg');
+            background-size: 2.5em;
+            background-position: -0.02em -0.05em;
+            
+            + label {
+                color: $light-gray;
+                text-decoration: line-through;
+            }
+        }
+        
+        &:focus {
+            outline: none;
+        }
+    }
+    
+    &.edit {
+        input[type="checkbox"] {
+            cursor: text;
+        }
     }
     
     span {

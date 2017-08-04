@@ -125,7 +125,11 @@ class Note {
     */
     enableEditMode(mode) {
         mode = mode || undefined === mode;
-        $("main[data-id='" + this._id + "']").prop("contentEditable", mode);
+        
+        var main = $("main[data-id='" + this._id + "']");
+        
+        mode ? main.addClass("edit") : main.removeClass("edit");
+        main.prop("contentEditable", mode);
     }
     
     /* Renders the note.
