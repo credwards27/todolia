@@ -1,0 +1,33 @@
+main {
+    
+    padding: 20px;
+    
+    & > *:first-child {
+        margin-top: 0;
+    }
+    & > *:last-child {
+        margin-bottom: 0;
+    }
+    
+    &:focus {
+        outline: none;
+    }
+    
+    label {
+        cursor: text;
+    }
+    input[type="checkbox"]:checked + label {
+        color: $light-gray;
+        text-decoration: line-through;
+    }
+    
+    span {
+        &.u {
+            text-decoration: underline;
+        }
+        
+        &.s {
+            text-decoration: line-through;
+        }
+    }
+}
