@@ -150,8 +150,6 @@ class Note {
         else {
             $("body").prepend(wrapper);
         }
-        
-        this.enableEditMode(true);
     }
 }
 
