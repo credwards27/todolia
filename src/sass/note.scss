@@ -1,4 +1,4 @@
-@import 'components/notes/variables';
+@import 'components/note/variables';
 
 html {
     width: 100%;
@@ -16,4 +16,4 @@ body > *, main > * {
     box-sizing: border-box;
 }
 
-@import 'components/notes/main';
+@import 'components/note/main';
