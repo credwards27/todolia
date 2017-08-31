@@ -50,6 +50,9 @@ class Note {
         }
     ];
     
+    // Cached handler bindings, keyed by method name.
+    _handlerBindings = {};
+    
     /* Constructor for Note.
         
         id - Note ID name.
@@ -150,6 +153,16 @@ class Note {
         else {
             $("body").prepend(wrapper);
         }
+    }
+    
+    /* Gets a class method for use as an event handler, with 'this' bound to the
+        Note class instance.
+        
+        method - Class method to bind.
+    */
+    _getBoundHandler(method) {
+        return this._handlerBindings[method.name] ||
+            (this._handlerBindings[method.name] = method.bind(this));
     }
 }
 
