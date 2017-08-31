@@ -53,6 +53,9 @@ class Note {
     // Cached handler bindings, keyed by method name.
     _handlerBindings = {};
     
+    // Autosave debounce timeout ID.
+    _debounce = -1;
+    
     /* Constructor for Note.
         
         id - Note ID name.
@@ -145,6 +148,8 @@ class Note {
         
         wrapper.append(dom);
         
+        this._attachEventHandlers(wrapper);
+        
         if (existing.length) {
             prev = existing.prev();
             existing.remove();
@@ -155,6 +160,20 @@ class Note {
         }
     }
     
+    /* Saves the note data.
+    */
+    save() {
+    }
+    
+    /* Attaches event handlers to a note wrapper element.
+        
+        wrapper - Note wrapper jQuery element.
+    */
+    _attachEventHandlers(wrapper) {
+        wrapper.on("keydown blur",
+            this._getBoundHandler(this._debounceAutoSave));
+    }
+    
     /* Gets a class method for use as an event handler, with 'this' bound to the
         Note class instance.
         
@@ -163,6 +182,21 @@ class Note {
     _getBoundHandler(method) {
         return this._handlerBindings[method.name] ||
             (this._handlerBindings[method.name] = method.bind(this));
+    }
+    
+    /* Attempts a debounced save action on various events.
+        
+        See this._getBoundHandler().
+        
+        e - Event object (various).
+    */
+    _debounceAutoSave(e) {
+        clearTimeout(this._debounce);
+        
+        this._debounce = setTimeout((function() {
+            clearTimeout(this._debounce);
+            this.save();
+        }).bind(this), 500);
     }
 }
 
