@@ -1,13 +1,13 @@
-/* note.js
+/* note-controller.js
     
-    Note clase object.
+    Note controller class object.
 */
 
 const $ = window.jQuery;
 
-/* Note object.
+/* NoteController object.
 */
-class Note {
+class NoteController {
     //
     // STATIC PROPERTIES
     //
@@ -56,7 +56,7 @@ class Note {
     // Autosave debounce timeout ID.
     _debounce = -1;
     
-    /* Constructor for Note.
+    /* Constructor for NoteController.
         
         id - Note ID name.
     */
@@ -64,7 +64,7 @@ class Note {
         this._id = id;
     }
     
-    /* Destructor for Note.
+    /* Destructor for NoteController.
     */
     destroy() {}
     
@@ -143,7 +143,7 @@ class Note {
     render() {
         var existing = $("main"),
             wrapper = $("<main role='main' data-id=" + this._id + ">"),
-            dom = Note.getDom(this._data),
+            dom = NoteController.getDom(this._data),
             prev;
         
         wrapper.append(dom);
@@ -175,7 +175,7 @@ class Note {
     }
     
     /* Gets a class method for use as an event handler, with 'this' bound to the
-        Note class instance.
+        NoteController class instance.
         
         method - Class method to bind.
     */
@@ -200,4 +200,4 @@ class Note {
     }
 }
 
-module.exports = Note;
+module.exports = NoteController;
