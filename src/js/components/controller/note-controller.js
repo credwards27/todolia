@@ -50,9 +50,6 @@ class NoteController {
         }
     ];
     
-    // Cached handler bindings, keyed by method name.
-    _handlerBindings = {};
-    
     // Autosave debounce timeout ID.
     _debounce = -1;
     
@@ -170,18 +167,7 @@ class NoteController {
         wrapper - Note wrapper jQuery element.
     */
     _attachEventHandlers(wrapper) {
-        wrapper.on("keydown blur",
-            this._getBoundHandler(this._debounceAutoSave));
-    }
-    
-    /* Gets a class method for use as an event handler, with 'this' bound to the
-        NoteController class instance.
-        
-        method - Class method to bind.
-    */
-    _getBoundHandler(method) {
-        return this._handlerBindings[method.name] ||
-            (this._handlerBindings[method.name] = method.bind(this));
+        wrapper.on("keydown blur", this._debounceAutoSave);
     }
     
     /* Attempts a debounced save action on various events.
@@ -190,7 +176,7 @@ class NoteController {
         
         e - Event object (various).
     */
-    _debounceAutoSave(e) {
+    _debounceAutoSave = (e) => {
         clearTimeout(this._debounce);
         
         this._debounce = setTimeout((function() {
