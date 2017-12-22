@@ -5,14 +5,14 @@
 
 "use strict";
 
-const NoteController = require("~/components/controller/note-controller"),
+const NoteView = require("~/components/view/note-view"),
+    NoteController = require("~/components/controller/note-controller"),
     $ = window.jQuery;
 
 /* Document ready initializer.
 */
 function init() {
-    var note = new NoteController("dev");
-    note.render();
+    var note = new NoteController("dev", new NoteView());
 }
 
 $(init);
