@@ -41,7 +41,7 @@
     "live-server": "~1.2.0",
     "minimist": "~1.2.0",
     "minimist-options": "~3.0.2",
-    "run-sequence": "~2.1.0",
+    "run-sequence": "~2.2.0",
     "webpack-stream": "~4.0.0"
   }
 }
