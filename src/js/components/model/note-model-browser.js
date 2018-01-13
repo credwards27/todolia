@@ -23,7 +23,9 @@ class NoteModelBrowser {
     
     /* Destructor for NoteModelBrowser.
     */
-    destroy() {}
+    destroy() {
+        this._controller = null;
+    }
     
     //
     // STATIC METHODS
