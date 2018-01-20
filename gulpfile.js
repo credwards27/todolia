@@ -10,10 +10,12 @@ const gulp = require("gulp"),
     // Other dependencies
     minimist = require("minimist"),
     minimistOpts = require("minimist-options"),
-    server = require("live-server"),
+    liveServer = require("live-server"),
     runSequence = require("run-sequence"),
     del = require("del"),
-    path = require("path");
+    path = require("path"),
+    
+    mockServer = require("./helpers/mock-server");
 
 // Environment flags.
 var env = {
@@ -149,14 +151,24 @@ var env = {
             var target = env.args["target"],
                 root = env.PATH.DEST.ROOT;
             
-            server.start({
+            mockServer.allowNonRest = true;
+            
+            liveServer.start({
                 port: 8080,
                 host: "localhost",
                 root: "app",
                 file: "app/" + target + ".html",
                 open: false,
                 wait: 250,
-                watch: [ "app/**" ]
+                watch: [ "app/**" ],
+                
+                middleware: [
+                    function(req, res, next) {
+                        if (!mockServer.dispatch(req, res)) {
+                            !req.finished && next();
+                        }
+                    }
+                ]
             });
         },
         

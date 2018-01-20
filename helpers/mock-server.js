@@ -20,7 +20,7 @@ const server = {
         port = parseInt(port, 10);
         port = !isNaN(port) ? port : 8080;
         
-        http.createServer(this._dispatch).listen(port, (err) => {
+        http.createServer(this.dispatch).listen(port, (err) => {
             if (err) {
                 console.error(err);
                 return;
