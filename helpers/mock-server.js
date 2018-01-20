@@ -118,60 +118,7 @@ const server = {
         handler.call(undefined, req, res);
         
         return true;
-    },
-    
-    /* Gets data from persistent storage.
-        
-        req - HTTP request object.
-        res - HTTP response object.
-        
-        Returns data from persistent storage.
-    */
-    _getData: function(req, res) {
-        res.end(JSON.stringify(true));
-    },
-
-    /* Saves data to persistent storage.
-        
-        req - HTTP request object.
-        res - HTTP response object.
-        
-        Returns data saved to persistent storage.
-    */
-    _saveData: function(req, res) {
-        var body = "";
-        
-        req.on("data", (chunk) => {
-            body += chunk;
-        });
-        
-        req.on("end", () => {
-            var data;
-            
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
-            
-            try {
-                data = JSON.parse(body);
-            }
-            catch (e) {
-                res.statusCode = 400;
-                
-                res.end(JSON.stringify({
-                    code: 400,
-                    error: "Request data must be valid JSON"
-                }));
-                
-                return;
-            }
-            
-            res.end(JSON.stringify("Saving:\n" + body));
-        });
     }
 };
-
-// Register default route handlers
-server.registerHandler("get", server._getData, "get");
-server.registerHandler("save", server._saveData, "post");
 
 module.exports = server;

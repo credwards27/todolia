@@ -15,7 +15,7 @@ const gulp = require("gulp"),
     del = require("del"),
     path = require("path"),
     
-    mockServer = require("./helpers/mock-server");
+    mockServer = require("./helpers/mock-endpoints");
 
 // Environment flags.
 var env = {
