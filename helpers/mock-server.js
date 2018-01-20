@@ -6,6 +6,9 @@
 const http = require("http");
 
 const server = {
+    // True to allow non-REST URLs to pass without returning an error.
+    allowNonRest: false,
+    
     // Collection of handlers keyed by HTTP method, then by route path.
     _handlers: {},
     
@@ -15,7 +18,7 @@ const server = {
     */
     start: function(port) {
         port = parseInt(port, 10);
-        port = !isNaN(port) ? port : 8181;
+        port = !isNaN(port) ? port : 8080;
         
         http.createServer(this._dispatch).listen(port, (err) => {
             if (err) {
@@ -23,7 +26,7 @@ const server = {
                 return;
             }
             
-            console.log("Test server listening on port " + port);
+            console.log("Mock server listening at http://localhost:" + port);
         });
     },
     
@@ -68,30 +71,38 @@ const server = {
         
         req - Request object.
         res - Response object.
+        
+        Returns true if the request was handled by a registred REST endpoint,
+        false otherwise.
     */
-    _dispatch: function(req, res) {
+    dispatch: function(req, res) {
         var method = req.method.toLowerCase(),
-            name = req.url.match(/^\/(.*?)\/?$/),
+            name = req.url.match(/^\/rest\/(.*?)\/?$/i),
             responseData = {
                 status: 404,
                 message: "Route not found"
             },
             handler;
         
-        res.statusCode = 404;
-        res.setHeader("Content-Type", "application/json");
-        
         if (!name) {
-            // Empty route
-            res.end(JSON.stringify(responseData));
-            return;
+            // Empty route, end the response if only REST requests are allowed
+            if (!this.allowNonRest) {
+                res.end(JSON.stringify(responseData));
+            }
+            
+            return false;
         }
         
         name = name[1].toLowerCase();
         
+        // Set default response headers
+        res.statusCode = 404;
+        res.setHeader("Content-Type", "application/json");
+        
         if (!this._handlers[method]) {
             // No handlers registered for the request method
             res.end(JSON.stringify(responseData));
+            return false;
         }
         
         handler = this._handlers[method][name];
@@ -99,12 +110,14 @@ const server = {
         if (typeof handler !== "function") {
             // No handler for the request method
             res.end(JSON.stringify(responseData));
-            return;
+            return false;
         }
         
         // Run the handler
         res.statusCode = 200;
         handler.call(undefined, req, res);
+        
+        return true;
     },
     
     /* Gets data from persistent storage.
@@ -133,7 +146,24 @@ const server = {
         });
         
         req.on("end", () => {
-            var data = JSON.parse(body);
+            var data;
+            
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            
+            try {
+                data = JSON.parse(body);
+            }
+            catch (e) {
+                res.statusCode = 400;
+                
+                res.end(JSON.stringify({
+                    code: 400,
+                    error: "Request data must be valid JSON"
+                }));
+                
+                return;
+            }
             
             res.end(JSON.stringify("Saving:\n" + body));
         });
