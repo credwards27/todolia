@@ -6,7 +6,8 @@
 // Dependencies.
 const querystring = require("querystring"),
     fs = require("fs"),
-    server = require("./mock-server");
+    server = require("./mock-server"),
+    validate = require("../src/js/utils/validate");
 
 // Directory path for data files (with trailing slash).
 const DATA_PATH = process.env.HOME + "/Library/Application Support/Todolia/";
@@ -50,7 +51,7 @@ function initPersistentStorage() {
 */
 function getNote(id, success, error) {
     // Exit if note ID is invalid
-    if (!validateNoteId(id)) {
+    if (!validate.isValidNoteId(id)) {
         error({
             status: 400,
             error: "Invalid ID '" + id + "' provided for note"
@@ -99,7 +100,7 @@ function getNote(id, success, error) {
             }
             
             json.id = id;
-            json = getSanitizedNote(json);
+            json = validate.getSanitizedNote(json);
             
             success(json);
         }
@@ -115,7 +116,7 @@ function getNote(id, success, error) {
 */
 function saveNote(id, content, settings, success, error) {
     // Exit if note ID is invalid
-    if ((!validateNoteId(id))) {
+    if ((!validate.isValidNoteId(id))) {
         error({
             status: 400,
             error: "Invalid ID '" + id + "' provided for note"
@@ -150,58 +151,6 @@ function saveNote(id, content, settings, success, error) {
             success();
         }
     );
-}
-
-/* Gets a sanitized note data object.
-    
-    data - Existing note data to apply to the returned object.
-    
-    Returns a formatted and sanitized note data object.
-*/
-function getSanitizedNote(data) {
-    //
-    // TODO: Add more settings sanitization when additional options are defined.
-    //
-    
-    var note = {
-        id: null,
-        content: null,
-        settings: {
-            x: 0,
-            y: 0
-        }
-    },
-        ns = note.settings,
-        ds;
-    
-    if (!data) {
-        return note;
-    }
-    
-    note.id = typeof data.id === "string" ? data.id : "";
-    note.content = typeof data.content === "string" ? data.content : "";
-    
-    // Settings
-    ds = data.settings || {};
-    
-    ns.x = typeof ds.x === "number" ? ds.x : 0;
-    ns.y = typeof ds.y === "number" ? ds.y : 0;
-    
-    return note;
-}
-
-/* Validates a note ID.
-*/
-function validateNoteId(id) {
-    var type = typeof id;
-    
-    switch (true) {
-        case "string" === type && !id:
-        case "string" !== type && "number" !== type:
-        return false;
-    }
-    
-    return true;
 }
 
 //
