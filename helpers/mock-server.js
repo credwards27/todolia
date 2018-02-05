@@ -48,7 +48,7 @@ const server = {
             
             if (typeof method !== "string") { continue; }
             
-            method.toLowerCase();
+            method.toLowerCase().replace(/\/+$/, "");
             
             switch (method) {
                 case "get":
@@ -77,7 +77,7 @@ const server = {
     */
     dispatch: function(req, res) {
         var method = req.method.toLowerCase(),
-            name = req.url.match(/^\/rest\/(.*?)\/?$/i),
+            name = req.url.split(/\?+/)[0].match(/^\/rest\/(.*?)\/?$/i),
             responseData = {
                 status: 404,
                 message: "Route not found"
