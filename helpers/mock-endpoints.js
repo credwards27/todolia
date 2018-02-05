@@ -115,7 +115,7 @@ function getNote(id, success, error) {
 */
 function saveNote(id, content, settings, success, error) {
     // Exit if note ID is invalid
-    if (typeof id !== "string" && typeof id !== "number") {
+    if ((!validateNoteId(id))) {
         error({
             status: 400,
             error: "Invalid ID '" + id + "' provided for note"
