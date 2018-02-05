@@ -15,13 +15,13 @@ const DATA_PATH = process.env.HOME + "/Library/Application Support/";
 
 /* Gets data from persistent storage.
 */
-server.registerHandler("get", function(req, res) {
+server.registerRoute("get", function(req, res) {
     res.end(JSON.stringify(true));
 }, "get");
 
 /* Saves data to persistent storage.
 */
-server.registerHandler("save", function(req, res) {
+server.registerRoute("save", function(req, res) {
     var body = "";
     
     req.on("data", (chunk) => {

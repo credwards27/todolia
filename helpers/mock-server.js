@@ -30,14 +30,14 @@ const server = {
         });
     },
     
-    /* Registers response handlers.
+    /* Registers an API route.
         
         route - Handler route (URL after leading slash).
-        handler - Handler function to register.
+        handler - Handler function to register for the route.
         methods - String or array of HTTP method strings (supports 'GET' and
             'POST').
     */
-    registerHandler: function(route, handler, methods) {
+    registerRoute: function(route, handler, methods) {
         if (typeof handler !== "function") { return; }
         
         methods = methods instanceof Array ? methods : [ methods ];
