@@ -181,7 +181,7 @@ function getNote(id, success, error) {
     success - Success callback.
     error - Error callback. First argument is an error object.
 */
-function saveNote(id, content, settings, success, error) {
+function saveNote(id, data, success, error) {
     // Exit if note ID is invalid
     if ((!validate.isValidNoteId(id))) {
         error({
@@ -192,11 +192,7 @@ function saveNote(id, content, settings, success, error) {
         return;
     }
     
-    var data = {
-        id: id,
-        content: content || "",
-        settings: typeof settings === "object" ? settings : {}
-    };
+    data = validate.getSanitizedNote(data);
     
     // Attempt to write to file
     fs.writeFile(
@@ -296,8 +292,10 @@ server.registerRoute("save", function(req, res) {
             return;
         }
         
+        data = validate.getSanitizedNote(data);
+        
         // Save the note to disk
-        saveNote(data.id, data.content, data.settings, () => {
+        saveNote(data.id, data, () => {
             res.end(JSON.stringify("Note '" + data.id + "' saved"));
         }, (e) => {
             res.end(JSON.stringify(e));
