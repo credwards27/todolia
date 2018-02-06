@@ -7,10 +7,59 @@
 const querystring = require("querystring"),
     fs = require("fs"),
     server = require("./mock-server"),
-    validate = require("../src/js/utils/validate");
+    validate = require("../src/js/utils/validate"),
+    fstr = require("../src/js/utils/format-str");
 
 // Directory path for data files (with trailing slash).
-const DATA_PATH = process.env.HOME + "/Library/Application Support/Todolia/";
+const DATA_PATH = process.env.HOME + "/Library/Application Support/Todolia/",
+    
+    // Error response objects.
+    ERRORS = {
+        "non-directory": {
+            status: 500,
+            message: "'%s' exists, but is not a directory"
+        },
+        
+        "invalid-id": {
+            status: 400,
+            message: "Note ID '%s' is invalid"
+        },
+        
+        "invalid-note": {
+            status: 400,
+            message: "Invalid note format"
+        },
+        
+        "note-not-found": {
+            status: 404,
+            message: "Note '%s' was not found"
+        },
+        
+        "read-error": {
+            status: 500,
+            message: "Note '%s' could not be retrieved"
+        },
+        
+        "note-corrupt": {
+            status: 500,
+            message: "Note '%s' is corrupt and could not be opened"
+        },
+        
+        "write-error": {
+            status: 500,
+            message: "Note '%s' could not be saved"
+        },
+        
+        "invalid-request": {
+            status: 400,
+            message: "Request data must be non-empty, valid JSON"
+        },
+        
+        "unknown-error": {
+            status: 500,
+            message: "An unknown error has occurred"
+        }
+    };
 
 /* Initializes persistent storage if necessary.
 */
@@ -41,6 +90,24 @@ function initPersistentStorage() {
             };
         }
     }
+}
+
+/* Gets a predefined error object.
+    
+    code - Error code of the object to retrieve.
+    ...replacements - String replacements for error messages.
+*/
+function getErrorObj(code) {
+    var error = ERRORS[code];
+    
+    if (!error) {
+        return ERRORS["unknown-error"];
+    }
+    
+    error.message = typeof error.message === "string" ? error.message : "";
+    error.message = fstr(error.message, Array.prototype.slice(arguments, 1));
+    
+    return error;
 }
 
 /* Gets note data from persistent storage.
@@ -237,6 +304,17 @@ server.registerRoute("save", function(req, res) {
         });
     });
 }, "post");
+
+;(function() {
+    var errors = ERRORS,
+        err, code;
+    
+    // Add error codes to error objects
+    for (code in errors) {
+        if (!errors.hasOwnProperty(code)) { continue; }
+        errors[code].code = code;
+    }
+})();
 
 initPersistentStorage();
 
