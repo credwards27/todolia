@@ -83,11 +83,7 @@ function initPersistentStorage() {
         stat = fs.statSync(path);
         
         if (!stat.isDirectory()) {
-            return {
-                code: "non-directory",
-                error: "'" + path.replace(/\/+$/, "") + "' exists, but is " +
-                    "not a directory"
-            };
+            return getErrorObj("non-directory", path.replace(/\/+$/, ""));
         }
     }
 }
@@ -119,11 +115,7 @@ function getErrorObj(code) {
 function getNote(id, success, error) {
     // Exit if note ID is invalid
     if (!validate.isValidNoteId(id)) {
-        error({
-            status: 400,
-            error: "Invalid ID '" + id + "' provided for note"
-        });
-        
+        error(getErrorObj("invalid-id", id));
         return;
     }
     
@@ -131,11 +123,7 @@ function getNote(id, success, error) {
     
     // Make sure note exists
     if (!fs.existsSync(notePath)) {
-        error({
-            status: 404,
-            error: "Note '" + id + "' was not found"
-        });
-        
+        error(getErrorObj("note-not-found", id));
         return;
     }
     
@@ -145,11 +133,7 @@ function getNote(id, success, error) {
         null,
         (err, data) => {
             if (err) {
-                error({
-                    status: 500,
-                    error: "Note '" + id + "' could not be retrieved"
-                });
-                
+                error(getErrorObj("read-error", id));
                 return;
             }
             
@@ -158,11 +142,7 @@ function getNote(id, success, error) {
             }
             catch (e) {
                 // Note is not valid JSON
-                error({
-                    status: 500,
-                    error: "Note '" + id + "' is corrupt"
-                });
-                
+                error(getErrorObj("note-corrupt", id));
                 return;
             }
             
@@ -184,11 +164,7 @@ function getNote(id, success, error) {
 function saveNote(id, data, success, error) {
     // Exit if note ID is invalid
     if ((!validate.isValidNoteId(id))) {
-        error({
-            status: 400,
-            error: "Invalid ID '" + id + "' provided for note"
-        });
-        
+        error(getErrorObj("invalid-id", id));
         return;
     }
     
@@ -203,11 +179,7 @@ function saveNote(id, data, success, error) {
         },
         (err) => {
             if (err) {
-                error({
-                    status: 500,
-                    error: "Note '" + id + "' could not be saved"
-                });
-                
+                error(getErrorObj("write-error", id));
                 return;
             }
             
@@ -225,19 +197,18 @@ function saveNote(id, data, success, error) {
 server.registerRoute("get", function(req, res) {
     var qs = req.url.split("?")[1],
         args = querystring.parse(qs),
-        id = args.id;
+        id = args.id,
+        err;
     
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
     
+    // Verify ID
     if (!validate.isValidNoteId(id)) {
-        res.statusCode = 400;
+        err = getErrorObj("invalid-id", id);
         
-        res.end(JSON.stringify({
-            status: 400,
-            error: "No note ID provided"
-        }));
-        
+        res.statusCode = err.status;
+        res.end(JSON.stringify(err));
         return;
     }
     
@@ -260,7 +231,7 @@ server.registerRoute("save", function(req, res) {
     });
     
     req.on("end", () => {
-        var data;
+        var data, err;
         
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
@@ -270,29 +241,32 @@ server.registerRoute("save", function(req, res) {
             data = JSON.parse(body);
         }
         catch (e) {
-            res.statusCode = 400;
+            err = getErrorObj("invalid-request");
             
-            res.end(JSON.stringify({
-                status: 400,
-                error: "Request data must be non-empty, valid JSON"
-            }));
-            
+            res.statusCode = err.status;
+            res.end(JSON.stringify(err));
             return;
         }
         
         // Make sure note ID is present
         if (!validate.isValidNoteId(data.id)) {
-            res.statusCode = 400;
+            err = getErrorObj("invalid-id", data.id);
             
-            res.end(JSON.stringify({
-                status: 400,
-                error: "No note ID provided"
-            }));
-            
+            res.statusCode = err.status;
+            res.end(JSON.stringify(err));
             return;
         }
         
         data = validate.getSanitizedNote(data);
+        
+        // Validate note format
+        if (!validate.isValidNote(data)) {
+            err = getErrorObj("invalid-note");
+            
+            res.statusCode = err.status;
+            res.end(JSON.stringify(err));
+            return;
+        }
         
         // Save the note to disk
         saveNote(data.id, data, () => {
