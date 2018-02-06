@@ -42,6 +42,27 @@ module.exports = {
         return note;
     },
     
+    /* Validates a note object.
+        
+        note - Note data object to validate.
+        
+        Returns true if note is valid for saving and loading, false otherwise.
+    */
+    isValidNote: function(note) {
+        if (!note) {
+            return false;
+        }
+        
+        switch (true) {
+            case this.isValidNoteId(note.id):
+            case typeof note.content !== "string":
+            case typeof note.settings !== "object":
+                return false;
+        }
+        
+        return true;
+    },
+    
     /* Validates a note ID.
         
         id - Note ID value to check.
