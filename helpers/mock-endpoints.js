@@ -230,7 +230,7 @@ server.registerRoute("get", function(req, res) {
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
     
-    if (typeof id !== "string") {
+    if (!validate.isValidNoteId(id)) {
         res.statusCode = 400;
         
         res.end(JSON.stringify({
@@ -281,7 +281,7 @@ server.registerRoute("save", function(req, res) {
         }
         
         // Make sure note ID is present
-        if (typeof data.id !== "string" && typeof data.id !== "number") {
+        if (!validate.isValidNoteId(data.id)) {
             res.statusCode = 400;
             
             res.end(JSON.stringify({
