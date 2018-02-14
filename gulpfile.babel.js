@@ -1,6 +1,7 @@
 // Gulp dependencies
 const gulp = require("gulp"),
     webpack = require("webpack-stream"),
+    WebpackUglify = require("uglifyjs-webpack-plugin"),
     sass = require("gulp-sass"),
     cleanCss = require("gulp-clean-css"),
     sourcemaps = require("gulp-sourcemaps"),
@@ -59,7 +60,11 @@ var env = {
     args: null,
     
     // Flag to specify that the current task sequence is for production.
-    prodMode: false
+    prodMode: false,
+    
+    // Flag to specify whether or not webpack build tasks should watch for
+    // changes.
+    webpackWatch: false
 },
     
     // Collection of task handler functions.
@@ -73,6 +78,8 @@ var env = {
         /* Watches the project for changes and recompiles.
         */
         watch: function() {
+            env.webpackWatch = true;
+            
             gulp.watch(env.PATH.SRC.SASS + "/**/*.scss", [ "sass" ]);
             gulp.watch(env.PATH.SRC.JS + "/**/*.js", [ "js" ]);
         },
@@ -119,9 +126,18 @@ var env = {
             var target = env.args["target"],
                 config = require("./webpack.config.js");
             
-            if (!env.prodMode) {
+            if (env.webpackWatch) {
                 config.watch = true;
+            }
+            
+            if (!env.prodMode) {
                 config.devtool = "source-map";
+            }
+            else {
+                config.plugins = config.plugins instanceof Array ?
+                    config.plugins : [];
+                
+                config.plugins.push(new WebpackUglify());
             }
             
             config.output = {
@@ -146,7 +162,7 @@ var env = {
         /* Live development server task.
         */
         server: function() {
-            runSequence("build", "watch");
+            runSequence("watch", "build");
             
             var target = env.args["target"],
                 root = env.PATH.DEST.ROOT;
