@@ -19,6 +19,9 @@ class NoteView {
     // Reference to controller object for the view.
     _controller = null;
     
+    // Note wrapper jQuery element in the DOM tree.
+    noteElem = null;
+    
     // Autosave debounce timeout ID.
     _debounce = -1;
     
@@ -36,55 +39,6 @@ class NoteView {
     // STATIC METHODS
     //
     
-    /* Generates content DOM for a note.
-        
-        data - Array of content nodes.
-        
-        Returns a jQuery collection of elements containing the provided data.
-        The returned object will be empty if the provided data is invalid.
-    */
-    static getDom(data) {
-        if (!(data instanceof Array)) {
-            return $();
-        }
-        
-        var wrapper = $("<div>"),
-            elem, label, curr, i, l;
-        
-        for (i=0, l=data.length; i<l; ++i) {
-            curr = data[i];
-            
-            if (!curr) { continue; }
-            
-            if (typeof curr === "string") {
-                // Raw string, add a paragraph
-                elem = $("<p>").html(curr);
-            }
-            else if (curr.hasOwnProperty("checked")) {
-                // Checkbox
-                elem = $("<div>").append(
-                    $("<input>").attr("type", "checkbox")
-                        .prop("checked", !!curr.checked)
-                );
-                
-                label = $("<label>");
-                
-                if (curr.text && typeof curr.text === "string") {
-                    label.append(curr.text);
-                }
-                
-                elem.append(label);
-            }
-            else {
-                continue;
-            }
-            
-            wrapper.append(elem);
-        }
-        
-        return wrapper.contents();
-    }
-    
     //
     // METHODS
     //
@@ -97,33 +51,50 @@ class NoteView {
         this._controller = controller;
     }
     
+    /* Gets the note element if one exists.
+        
+        Returns the note jQuery element, or an empty jQuery element if no note
+        element exists.
+    */
+    getNote() {
+        return this.noteElem instanceof $ ? this.noteElem : $();
+    }
+    
     /* Enables or disables edit mode.
         
         mode - True to enable edit mode, false otherwise. Defaults to true.
     */
     enableEditMode(mode) {
-        mode = mode || undefined === mode;
+        mode = !!(mode || undefined === mode);
         
-        var main = $("main[data-id='" + this._controller.id + "']");
+        var noteElem = this.noteElem;
         
-        mode ? main.addClass("edit") : main.removeClass("edit");
-        main.prop("contentEditable", mode);
+        // Stop if note element does not currently exist
+        if (!noteElem) {
+            return;
+        }
+        
+        mode ? noteElem.addClass("edit") : noteElem.removeClass("edit");
+        noteElem.prop("contentEditable", mode);
     }
     
     /* Renders the note.
+        
+        data - DOM data to render.
     */
-    render() {
-        var existing = $("main"),
+    render(data) {
+        var existing = this.noteElem,
             wrapper = $("<main role='main' data-id=" + this._controller.id +
                 ">"),
-            dom = NoteView.getDom(this._controller.data),
             prev;
         
-        wrapper.append(dom);
+        wrapper.html(data.content);
+        wrapper.data("settings", data.settings);
         
+        this.noteElem = wrapper;
         this._attachEventHandlers(wrapper);
         
-        if (existing.length) {
+        if (existing) {
             prev = existing.prev();
             existing.remove();
             wrapper.insertAfter(prev);
@@ -131,6 +102,9 @@ class NoteView {
         else {
             $("body").prepend(wrapper);
         }
+        
+        // Synchronize with the controller's edit mode state
+        this.enableEditMode(this._controller.editMode);
     }
     
     /* Attaches event handlers to a note wrapper element.
@@ -143,15 +117,19 @@ class NoteView {
     
     /* Attempts a debounced save action on various events.
         
-        See this._getBoundHandler().
-        
         e - Event object (various).
     */
     triggerAutoSave = (e) => {
+        // Don't attempt an autosave if edit mode is disabled
+        if (!this.noteElem || "true" !== this.noteElem[0].contentEditable) {
+            return;
+        }
+        
         clearTimeout(this._debounce);
         
         this._debounce = setTimeout(() => {
             clearTimeout(this._debounce);
+            
             this._controller.save();
         }, 500);
     }

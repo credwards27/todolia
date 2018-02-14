@@ -3,7 +3,8 @@
     Note controller class object.
 */
 
-const $ = window.jQuery;
+// Dependencies.
+const validate = require("~/utils/validate");
 
 /* NoteController object.
 */
@@ -19,59 +20,40 @@ class NoteController {
     // Unique note ID name.
     id = null;
     
-    // Note content nodes.
-    data = [
-        "This is free text. It can be freely edited with formatting.",
-        
-        "Text can be <strong>strong</strong>, <em>emphasized</em>, " +
-            "<span class='u'>underlined</span>, and <span " +
-            "class='s'>crossed out</span>.",
-        
-        "You can also <strong>mix <em>and<em> match</strong> " +
-            "formatting. It doesn't <span class='u'>have to be <span " +
-            "class='s'>perfect</span></span>",
-        
-        "Finally, you can also have <a " +
-            "href='http://example.com'>links</a>",
-        
-        {
-            checked: false,
-            text: "Most importantly, you can have checklists!"
-        },
-        
-        {
-            checked: false,
-            text: "They can be <strong>formatted!</strong>"
-        },
-        
-        {
-            checked: true,
-            text: "This one's finished!"
-        }
-    ];
+    // True if note is in edit mode, false otherwise.
+    editMode = false;
     
     // Reference to note view object.
     _view = null;
     
+    // Reference to note model object.
+    _model = null;
+    
     /* Constructor for NoteController.
         
         id - Note ID name.
+        view - Note view object.
+        model - Note model object.
     */
-    constructor(id, view) {
+    constructor(id, view, model) {
         this.id = id;
         this._view = view;
+        this._model = model;
         
         view.setController(this);
-        view.render();
+        model.setController(this);
+        
+        this.load();
     }
     
     /* Destructor for NoteController.
     */
     destroy() {
-        this.data = null;
-        
         this._view.destroy();
+        this._model.destroy();
+        
         this._view = null;
+        this._model = null;
     }
     
     //
@@ -87,12 +69,42 @@ class NoteController {
         mode - True to enable edit mode, false otherwise. Defaults to true.
     */
     enableEditMode(mode) {
+        this.editMode = !!(mode || undefined === mode);
         this._view.enableEditMode(mode);
     }
     
-    /* Saves the note data.
+    /* Loads the note data from the model.
+    */
+    load() {
+        this._model.getData(
+            this.id,
+            (d) => {
+                this._view.render(d);
+            },
+            (e) => {
+                console.log(e);
+            }
+        );
+    }
+    
+    /* Saves the note data to the model.
     */
     save() {
+        var elem = this._view.getNote(),
+            data = validate.getSanitizedNote({
+                id: this.id,
+                content: elem.html(),
+                settings: elem.data("settings")
+            });
+        
+        this._model.setData(
+            data,
+            (d) => {
+                console.log("saved");
+            }, (e) => {
+                console.log(e);
+            }
+        );
     }
 }
 
