@@ -7,8 +7,8 @@
 const querystring = require("querystring"),
     fs = require("fs"),
     server = require("./mock-server"),
-    validate = require("../src/js/utils/validate"),
-    fstr = require("../src/js/utils/format-str");
+    validate = require("~/utils/validate"),
+    fstr = require("~/utils/format-str");
 
 // Directory path for data files (with trailing slash).
 const DATA_PATH = process.env.HOME + "/Library/Application Support/Todolia/",
