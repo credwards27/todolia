@@ -8,58 +8,10 @@ const querystring = require("querystring"),
     fs = require("fs"),
     server = require("./mock-server"),
     validate = require("~/utils/validate"),
-    fstr = require("~/utils/format-str");
+    getError = require("~/utils/errors");
 
 // Directory path for data files (with trailing slash).
-const DATA_PATH = process.env.HOME + "/Library/Application Support/Todolia/",
-    
-    // Error response objects.
-    ERRORS = {
-        "non-directory": {
-            status: 500,
-            message: "'%s' exists, but is not a directory"
-        },
-        
-        "invalid-id": {
-            status: 400,
-            message: "Note ID '%s' is invalid"
-        },
-        
-        "invalid-note": {
-            status: 400,
-            message: "Invalid note format"
-        },
-        
-        "note-not-found": {
-            status: 404,
-            message: "Note '%s' was not found"
-        },
-        
-        "read-error": {
-            status: 500,
-            message: "Note '%s' could not be retrieved"
-        },
-        
-        "note-corrupt": {
-            status: 500,
-            message: "Note '%s' is corrupt and could not be opened"
-        },
-        
-        "write-error": {
-            status: 500,
-            message: "Note '%s' could not be saved"
-        },
-        
-        "invalid-request": {
-            status: 400,
-            message: "Request data must be non-empty, valid JSON"
-        },
-        
-        "unknown-error": {
-            status: 500,
-            message: "An unknown error has occurred"
-        }
-    };
+const DATA_PATH = process.env.HOME + "/Library/Application Support/Todolia/";
 
 /* Initializes persistent storage if necessary.
 */
@@ -83,27 +35,9 @@ function initPersistentStorage() {
         stat = fs.statSync(path);
         
         if (!stat.isDirectory()) {
-            return getErrorObj("non-directory", path.replace(/\/+$/, ""));
+            return getError("non-directory", path.replace(/\/+$/, ""));
         }
     }
-}
-
-/* Gets a predefined error object.
-    
-    code - Error code of the object to retrieve.
-    ...replacements - String replacements for error messages.
-*/
-function getErrorObj(code) {
-    var error = ERRORS[code];
-    
-    if (!error) {
-        return ERRORS["unknown-error"];
-    }
-    
-    error.message = typeof error.message === "string" ? error.message : "";
-    error.message = fstr(error.message, Array.prototype.slice(arguments, 1));
-    
-    return error;
 }
 
 /* Gets note data from persistent storage.
@@ -115,7 +49,7 @@ function getErrorObj(code) {
 function getNote(id, success, error) {
     // Exit if note ID is invalid
     if (!validate.isValidNoteId(id)) {
-        error(getErrorObj("invalid-id", id));
+        error(getError("invalid-id", id));
         return;
     }
     
@@ -123,7 +57,7 @@ function getNote(id, success, error) {
     
     // Make sure note exists
     if (!fs.existsSync(notePath)) {
-        error(getErrorObj("note-not-found", id));
+        error(getError("note-not-found", id));
         return;
     }
     
@@ -133,7 +67,7 @@ function getNote(id, success, error) {
         null,
         (err, data) => {
             if (err) {
-                error(getErrorObj("read-error", id));
+                error(getError("read-error", id));
                 return;
             }
             
@@ -142,7 +76,7 @@ function getNote(id, success, error) {
             }
             catch (e) {
                 // Note is not valid JSON
-                error(getErrorObj("note-corrupt", id));
+                error(getError("note-corrupt", id));
                 return;
             }
             
@@ -164,7 +98,7 @@ function getNote(id, success, error) {
 function saveNote(id, data, success, error) {
     // Exit if note ID is invalid
     if ((!validate.isValidNoteId(id))) {
-        error(getErrorObj("invalid-id", id));
+        error(getError("invalid-id", id));
         return;
     }
     
@@ -179,7 +113,7 @@ function saveNote(id, data, success, error) {
         },
         (err) => {
             if (err) {
-                error(getErrorObj("write-error", id));
+                error(getError("write-error", id));
                 return;
             }
             
@@ -205,7 +139,7 @@ server.registerRoute("get", function(req, res) {
     
     // Verify ID
     if (!validate.isValidNoteId(id)) {
-        err = getErrorObj("invalid-id", id);
+        err = getError("invalid-id", id);
         
         res.statusCode = err.status;
         res.end(JSON.stringify(err));
@@ -241,7 +175,7 @@ server.registerRoute("save", function(req, res) {
             data = JSON.parse(body);
         }
         catch (e) {
-            err = getErrorObj("invalid-request");
+            err = getError("invalid-request");
             
             res.statusCode = err.status;
             res.end(JSON.stringify(err));
@@ -250,7 +184,7 @@ server.registerRoute("save", function(req, res) {
         
         // Make sure note ID is present
         if (!validate.isValidNoteId(data.id)) {
-            err = getErrorObj("invalid-id", data.id);
+            err = getError("invalid-id", data.id);
             
             res.statusCode = err.status;
             res.end(JSON.stringify(err));
@@ -261,7 +195,7 @@ server.registerRoute("save", function(req, res) {
         
         // Validate note format
         if (!validate.isValidNote(data)) {
-            err = getErrorObj("invalid-note");
+            err = getError("invalid-note");
             
             res.statusCode = err.status;
             res.end(JSON.stringify(err));
@@ -276,17 +210,6 @@ server.registerRoute("save", function(req, res) {
         });
     });
 }, "post");
-
-;(function() {
-    var errors = ERRORS,
-        err, code;
-    
-    // Add error codes to error objects
-    for (code in errors) {
-        if (!errors.hasOwnProperty(code)) { continue; }
-        errors[code].code = code;
-    }
-})();
 
 initPersistentStorage();
 
