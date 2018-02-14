@@ -54,7 +54,7 @@ module.exports = {
         }
         
         switch (true) {
-            case this.isValidNoteId(note.id):
+            case !this.isValidNoteId(note.id):
             case typeof note.content !== "string":
             case typeof note.settings !== "object":
                 return false;
