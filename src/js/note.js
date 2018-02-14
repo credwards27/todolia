@@ -5,15 +5,18 @@
 
 "use strict";
 
-const NoteView = require("~/components/view/note-view"),
+const $ = require("jquery"),
+    NoteView = require("~/components/view/note-view"),
     NoteModel = require("~/components/model/note-model-browser"),
-    NoteController = require("~/components/controller/note-controller"),
-    $ = window.jQuery;
+    NoteController = require("~/components/controller/note-controller");
 
 /* Document ready initializer.
 */
 function init() {
     var note = new NoteController("dev", new NoteView(), new NoteModel());
+    note.enableEditMode();
+    
+    window.note = note;
 }
 
 $(init);
